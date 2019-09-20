@@ -14,14 +14,15 @@
           $idUser = obtenirIdUserConnecte() ;
           $lgUser = obtenirDetailVisiteur($idConnexion, $idUser);
           $nom = $lgUser['nom'];
-          $prenom = $lgUser['prenom'];            
+          $prenom = $lgUser['prenom'];
+          $role = $lgUser['role'];        
     ?>
         <h2>
     <?php  
             echo $nom . " " . $prenom ;
     ?>
         </h2>
-        <h3>Visiteur médical</h3>        
+        <h3>$role</h3>        
     <?php
        }
     ?>  

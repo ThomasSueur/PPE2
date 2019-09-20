@@ -66,16 +66,16 @@ function filtrerChainePourBD($str) {
 }
 
 /** 
- * Fournit les informations sur un visiteur demandé. 
- * Retourne les informations du visiteur d'id $unId sous la forme d'un tableau
+ * Fournit les informations sur un utilisateurs demandé. 
+ * Retourne les informations du utilisateurs d'id $unId sous la forme d'un tableau
  * associatif dont les clés sont les noms des colonnes(id, nom, prenom).
  * @param resource $idCnx identifiant de connexion
  * @param string $unId id de l'utilisateur
- * @return array  tableau associatif du visiteur
+ * @return array  tableau associatif du utilisateurs
  */
 function obtenirDetailVisiteur($idCnx, $unId) {
     $id = filtrerChainePourBD($unId);
-    $requete = "select id, nom, prenom from visiteur where id='" . $unId . "'";
+    $requete = "select id, nom, prenom , role from utilisateurs where id='" . $unId . "'";
     $idJeuRes = mysql_query($requete, $idCnx);  
     $ligne = false;     
     if ( $idJeuRes ) {
@@ -324,7 +324,7 @@ function verifierInfosConnexion($idCnx, $unLogin, $unMdp) {
     $unLogin = filtrerChainePourBD($unLogin);
     $unMdp = filtrerChainePourBD($unMdp);
     // le mot de passe est crypté dans la base avec la fonction de hachage md5
-    $req = "select id, nom, prenom, login, mdp from Visiteur where login='".$unLogin."' and mdp='" . $unMdp . "'";
+    $req = "select id, nom, prenom, login, mdp, role from utilisateurs where login='".$unLogin."' and mdp='" . $unMdp . "'";
     $idJeuRes = mysql_query($req, $idCnx);
     $ligne = false;
     if ( $idJeuRes ) {

@@ -28,6 +28,14 @@ function obtenirIdUserConnecte() {
     return $ident ;
 }
 
+function obtenirRoleUserConnecte() {
+    $ident="";
+    if ( isset($_SESSION["loginUser"]) ) {
+        $ident = (isset($_SESSION["idUser"])) ? $_SESSION["idUser"] : '';   
+    }  
+    return $ident ;
+}
+
 /**
  * Conserve en variables session les informations du visiteur connecté
  * 
@@ -39,6 +47,7 @@ function obtenirIdUserConnecte() {
 function affecterInfosConnecte($id, $login) {
     $_SESSION["idUser"] = $id;
     $_SESSION["loginUser"] = $login;
+    $_SESSION[""]
 }
 
 /** 
