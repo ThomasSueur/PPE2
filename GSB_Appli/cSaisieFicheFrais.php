@@ -79,7 +79,8 @@
           <fieldset>
             <legend>Eléments forfaitisés
             </legend>
-      <?php          
+      <?php  
+      $link = new mysqli("localhost", "root", "", "gsb_frais");        
             // demande de la requête pour obtenir la liste des éléments 
             // forfaitisés du visiteur connecté pour le mois demandé
             $req = obtenirReqEltsForfaitFicheFrais($mois, obtenirIdUserConnecte());
@@ -129,7 +130,10 @@
           // forfait du visiteur connecté pour le mois demandé
           $req = obtenirReqEltsHorsForfaitFicheFrais($mois, obtenirIdUserConnecte());
           $idJeuEltsHorsForfait = mysqli_query($idConnexion, $req);
+                    if($idJeuEltsHorsForfait = false){
           $lgEltHorsForfait = mysqli_fetch_assoc($idJeuEltsHorsForfait);
+
+        
           
           // parcours des frais hors forfait du visiteur connecté
           while ( is_array($lgEltHorsForfait) ) {
@@ -143,9 +147,10 @@
                        title="Supprimer la ligne de frais hors forfait">Supprimer</a></td>
               </tr>
           <?php
-              $lgEltHorsForfait = mysqli_fetch_assoc($idJeuEltsHorsForfait);
-          }
-          mysqli_free_result($idJeuEltsHorsForfait);
+          if($idJeuEltsHorsForfait = true){
+              $lgEltHorsForfait = mysqli_fetch_assoc($idJeuEltsHorsForfait);}
+          
+          mysqli_free_result($idJeuEltsHorsForfait);}}
 ?>
     </table>
       <form action="" method="post">
