@@ -5,7 +5,7 @@
  * @author Arthur Martin
  * @todo Fonctions retournant plusieurs lignes sont à réécrire.
  */
-
+global $cam ;
 /** 
  * Se connecte au serveur de données MySql.                      
  * Se connecte au serveur de données MySql à partir de valeurs
@@ -18,7 +18,7 @@ function connecterServeurBD() {
     $hote = "localhost";
     $login = "root";
     $mdp = "";
-    return mysql_connect($hote, $login, $mdp);
+    return mysqli_connect($hote, $login, $mdp);
 }
 
 /**
@@ -32,8 +32,8 @@ function activerBD($idCnx) {
     $bd = "gsb_frais";
     $query = "SET CHARACTER SET utf8";
     // Modification du jeu de caractères de la connexion
-    $res = mysql_query($query, $idCnx); 
-    $ok = mysql_select_db($bd, $idCnx);
+    $res = mysqli_query(  $idCnx, $query); 
+    $ok = mysqli_select_db($idCnx, $bd);
     return $ok;
 }
 
@@ -45,7 +45,7 @@ function activerBD($idCnx) {
  * @return void  
  */
 function deconnecterServeurBD($idCnx) {
-    mysql_close($idCnx);
+    mysqli_close($idCnx);
 }
 
 /**
@@ -59,28 +59,29 @@ function filtrerChainePourBD($str) {
     if ( ! get_magic_quotes_gpc() ) { 
         // si la directive de configuration magic_quotes_gpc est activée dans php.ini,
         // toute chaîne reçue par get, post ou cookie est déjà échappée 
-        // par conséquent, il ne faut pas échapper la chaîne une seconde fois                              
-        $str = mysql_real_escape_string($str);
+        // par conséquent, il ne faut pas échapper la chaîne une seconde fois 
+        $link = new mysqli("localhost", "root", "", "gsb_frais");                             
+        $str = mysqli_real_escape_string( $link, $str);
     }
     return $str;
 }
 
 /** 
- * Fournit les informations sur un visiteur demandé. 
- * Retourne les informations du visiteur d'id $unId sous la forme d'un tableau
+ * Fournit les informations sur un utilisateurs demandé. 
+ * Retourne les informations du utilisateurs d'id $unId sous la forme d'un tableau
  * associatif dont les clés sont les noms des colonnes(id, nom, prenom).
  * @param resource $idCnx identifiant de connexion
  * @param string $unId id de l'utilisateur
- * @return array  tableau associatif du visiteur
+ * @return array  tableau associatif du utilisateurs
  */
 function obtenirDetailVisiteur($idCnx, $unId) {
     $id = filtrerChainePourBD($unId);
-    $requete = "select id, nom, prenom from visiteur where id='" . $unId . "'";
-    $idJeuRes = mysql_query($requete, $idCnx);  
+    $requete = "select id, nom, prenom , role from utilisateurs where id='" . $unId . "'";
+    $idJeuRes = mysqli_query($idCnx, $requete);  
     $ligne = false;     
     if ( $idJeuRes ) {
-        $ligne = mysql_fetch_assoc($idJeuRes);
-        mysql_free_result($idJeuRes);
+        $ligne = mysqli_fetch_assoc($idJeuRes);
+        mysqli_free_result($idJeuRes);
     }
     return $ligne ;
 }
@@ -100,12 +101,12 @@ function obtenirDetailFicheFrais($idCnx, $unMois, $unIdVisiteur) {
     $ligne = false;
     $requete="select IFNULL(nbJustificatifs,0) as nbJustificatifs, Etat.id as idEtat, libelle as libelleEtat, dateModif, montantValide 
     from FicheFrais inner join Etat on idEtat = Etat.id 
-    where idVisiteur='" . $unIdVisiteur . "' and mois='" . $unMois . "'";
-    $idJeuRes = mysql_query($requete, $idCnx);  
+    where idUtilisateur='" . $unIdVisiteur . "' and mois='" . $unMois . "'";
+    $idJeuRes = mysqli_query($idCnx, $requete);  
     if ( $idJeuRes ) {
-        $ligne = mysql_fetch_assoc($idJeuRes);
+        $ligne = mysqli_fetch_assoc($idJeuRes);
     }        
-    mysql_free_result($idJeuRes);
+    mysqli_free_result($idJeuRes);
     
     return $ligne ;
 }
@@ -121,13 +122,13 @@ function obtenirDetailFicheFrais($idCnx, $unMois, $unIdVisiteur) {
  */
 function existeFicheFrais($idCnx, $unMois, $unIdVisiteur) {
     $unMois = filtrerChainePourBD($unMois);
-    $requete = "select idVisiteur from FicheFrais where idVisiteur='" . $unIdVisiteur . 
+    $requete = "select idUtilisateur from FicheFrais where idUtilisateur='" . $unIdVisiteur . 
               "' and mois='" . $unMois . "'";
-    $idJeuRes = mysql_query($requete, $idCnx);  
+    $idJeuRes = mysqli_query($idCnx, $requete);  
     $ligne = false ;
     if ( $idJeuRes ) {
-        $ligne = mysql_fetch_assoc($idJeuRes);
-        mysql_free_result($idJeuRes);
+        $ligne = mysqli_fetch_assoc($idJeuRes);
+        mysqli_free_result($idJeuRes);
     }        
     
     // si $ligne est un tableau, la fiche de frais existe, sinon elle n'exsite pas
@@ -142,14 +143,14 @@ function existeFicheFrais($idCnx, $unMois, $unIdVisiteur) {
  * @return string dernier mois sous la forme AAAAMM
  */
 function obtenirDernierMoisSaisi($idCnx, $unIdVisiteur) {
-	$requete = "select max(mois) as dernierMois from FicheFrais where idVisiteur='" .
+	$requete = "select max(mois) as dernierMois from FicheFrais where idUtilisateur='" .
             $unIdVisiteur . "'";
-	$idJeuRes = mysql_query($requete, $idCnx);
+	$idJeuRes = mysqli_query($idCnx, $requete);
     $dernierMois = false ;
     if ( $idJeuRes ) {
-        $ligne = mysql_fetch_assoc($idJeuRes);
+        $ligne = mysqli_fetch_assoc($idJeuRes);
         $dernierMois = $ligne["dernierMois"];
-        mysql_free_result($idJeuRes);
+        mysqli_free_result($idJeuRes);
     }        
 	return $dernierMois;
 }
@@ -174,26 +175,26 @@ function ajouterFicheFrais($idCnx, $unMois, $unIdVisiteur) {
 	}
     
     // ajout de la fiche de frais à l'état Créé
-    $requete = "insert into FicheFrais (idVisiteur, mois, nbJustificatifs, montantValide, idEtat, dateModif) values ('" 
+    $requete = "insert into FicheFrais (idUtilisateur, mois, nbJustificatifs, montantValide, idEtat, dateModif) values ('" 
               . $unIdVisiteur 
               . "','" . $unMois . "',0,NULL, 'CR', '" . date("Y-m-d") . "')";
-    mysql_query($requete, $idCnx);
+    mysqli_query($idCnx, $requete);
     
     // ajout des éléments forfaitisés
     $requete = "select id from FraisForfait";
-    $idJeuRes = mysql_query($requete, $idCnx);
+    $idJeuRes = mysqli_query($idCnx, $requete);
     if ( $idJeuRes ) {
-        $ligne = mysql_fetch_assoc($idJeuRes);
+        $ligne = mysqli_fetch_assoc($idJeuRes);
         while ( is_array($ligne) ) {
             $idFraisForfait = $ligne["id"];
             // insertion d'une ligne frais forfait dans la base
-            $requete = "insert into LigneFraisForfait (idVisiteur, mois, idFraisForfait, quantite)
+            $requete = "insert into LigneFraisForfait (idUtilisateur, mois, idFraisForfait, quantite)
                         values ('" . $unIdVisiteur . "','" . $unMois . "','" . $idFraisForfait . "',0)";
-            mysql_query($requete, $idCnx);
+            mysqli_query($idCnx, $requete);
             // passage au frais forfait suivant
-            $ligne = mysql_fetch_assoc ($idJeuRes);
+            $ligne = mysqli_fetch_assoc ($idJeuRes);
         }
-        mysql_free_result($idJeuRes);       
+        mysqli_free_result($idJeuRes);       
     }        
 }
 
@@ -207,7 +208,7 @@ function ajouterFicheFrais($idCnx, $unMois, $unIdVisiteur) {
  * @return string texte de la requête select
  */                                                 
 function obtenirReqMoisFicheFrais($unIdVisiteur) {
-    $req = "select fichefrais.mois as mois from  fichefrais where fichefrais.idvisiteur ='"
+    $req = "select fichefrais.mois as mois from  fichefrais where fichefrais.idUtilisateur ='"
             . $unIdVisiteur . "' order by fichefrais.mois desc ";
     return $req ;
 }  
@@ -227,7 +228,7 @@ function obtenirReqEltsForfaitFicheFrais($unMois, $unIdVisiteur) {
     $unMois = filtrerChainePourBD($unMois);
     $requete = "select idFraisForfait, libelle, quantite from LigneFraisForfait
               inner join FraisForfait on FraisForfait.id = LigneFraisForfait.idFraisForfait
-              where idVisiteur='" . $unIdVisiteur . "' and mois='" . $unMois . "'";
+              where idUtilisateur='" . $unIdVisiteur . "' and mois='" . $unMois . "'";
     return $requete;
 }
 
@@ -245,7 +246,7 @@ function obtenirReqEltsForfaitFicheFrais($unMois, $unIdVisiteur) {
 function obtenirReqEltsHorsForfaitFicheFrais($unMois, $unIdVisiteur) {
     $unMois = filtrerChainePourBD($unMois);
     $requete = "select id, date, libelle, montant from LigneFraisHorsForfait
-              where idVisiteur='" . $unIdVisiteur 
+              where idUtilisateur='" . $unIdVisiteur 
               . "' and mois='" . $unMois . "'";
     return $requete;
 }
@@ -259,7 +260,7 @@ function obtenirReqEltsHorsForfaitFicheFrais($unMois, $unIdVisiteur) {
  */
 function supprimerLigneHF($idCnx, $unIdLigneHF) {
     $requete = "delete from LigneFraisHorsForfait where id = " . $unIdLigneHF;
-    mysql_query($requete, $idCnx);
+    mysqli_query($idCnx, $requete);
 }
 
 /**
@@ -279,9 +280,9 @@ function ajouterLigneHF($idCnx, $unMois, $unIdVisiteur, $uneDateHF, $unLibelleHF
     $unLibelleHF = filtrerChainePourBD($unLibelleHF);
     $uneDateHF = filtrerChainePourBD(convertirDateFrancaisVersAnglais($uneDateHF));
     $unMois = filtrerChainePourBD($unMois);
-    $requete = "insert into LigneFraisHorsForfait(idVisiteur, mois, date, libelle, montant) 
+    $requete = "insert into LigneFraisHorsForfait(idUtilisateur, mois, date, libelle, montant) 
                 values ('" . $unIdVisiteur . "','" . $unMois . "','" . $uneDateHF . "','" . $unLibelleHF . "'," . $unMontantHF .")";
-    mysql_query($requete, $idCnx);
+    mysqli_query($idCnx, $requete);
 }
 
 /**
@@ -303,9 +304,9 @@ function modifierEltsForfait($idCnx, $unMois, $unIdVisiteur, $desEltsForfait) {
     $unIdVisiteur=filtrerChainePourBD($unIdVisiteur);
     foreach ($desEltsForfait as $idFraisForfait => $quantite) {
         $requete = "update LigneFraisForfait set quantite = " . $quantite 
-                    . " where idVisiteur = '" . $unIdVisiteur . "' and mois = '"
+                    . " where idUtilisateur = '" . $unIdVisiteur . "' and mois = '"
                     . $unMois . "' and idFraisForfait='" . $idFraisForfait . "'";
-      mysql_query($requete, $idCnx);
+      mysqli_query($idCnx, $requete);
     }
 }
 
@@ -324,12 +325,12 @@ function verifierInfosConnexion($idCnx, $unLogin, $unMdp) {
     $unLogin = filtrerChainePourBD($unLogin);
     $unMdp = filtrerChainePourBD($unMdp);
     // le mot de passe est crypté dans la base avec la fonction de hachage md5
-    $req = "select id, nom, prenom, login, mdp from Visiteur where login='".$unLogin."' and mdp='" . $unMdp . "'";
-    $idJeuRes = mysql_query($req, $idCnx);
+    $req = "select id, nom, prenom, login, mdp, role from utilisateurs where login='".$unLogin."' and mdp='" . $unMdp . "'";
+    $idJeuRes = mysqli_query( $idCnx, $req);
     $ligne = false;
     if ( $idJeuRes ) {
-        $ligne = mysql_fetch_assoc($idJeuRes);
-        mysql_free_result($idJeuRes);
+        $ligne = mysqli_fetch_assoc($idJeuRes);
+        mysqli_free_result($idJeuRes);
     }
     return $ligne;
 }
@@ -347,8 +348,8 @@ function verifierInfosConnexion($idCnx, $unLogin, $unMdp) {
  */
 function modifierEtatFicheFrais($idCnx, $unMois, $unIdVisiteur, $unEtat) {
     $requete = "update FicheFrais set idEtat = '" . $unEtat . 
-               "', dateModif = now() where idVisiteur ='" .
+               "', dateModif = now() where idUtilisateur ='" .
                $unIdVisiteur . "' and mois = '". $unMois . "'";
-    mysql_query($requete, $idCnx);
+    mysqli_query($idCnx, $requete);
 }             
 ?>
