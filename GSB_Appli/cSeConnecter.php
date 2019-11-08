@@ -1,9 +1,11 @@
+
 <?php  
 /** 
  * Script de contrôle et d'affichage du cas d'utilisation "Se connecter"
  * @package default
  * @todo  RAS
  */
+
   $repInclude = './include/';
   require($repInclude . "_init.inc.php");
   
@@ -67,3 +69,4 @@
     require($repInclude . "_pied.inc.html");
     require($repInclude . "_fin.inc.php");
 ?>
+</body>
